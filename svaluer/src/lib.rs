@@ -11,10 +11,10 @@ pub use cfg::Config;
 
 use anyhow::{Context, Result};
 use fiber::{Fiber, FiberReply};
-use valuer_api::{JudgeLogKind, ProblemInfo, TestDoneNotification, ValuerResponse};
 use log::debug;
 use pom::TestId;
 use std::collections::HashSet;
+use valuer_api::{JudgeLogKind, ProblemInfo, TestDoneNotification, ValuerResponse};
 /// SValuer is pure. Only `ValuerDriver` actually performs some IO, interacting with environment, such as JJS invoker.
 pub trait ValuerDriver: std::fmt::Debug {
     /// Retrieves `ProblemInfo`. Will be called once.
@@ -47,10 +47,11 @@ impl<'a> SimpleValuer<'a> {
         let problem_info = driver
             .problem_info()
             .context("failed to query problem info")?;
-        let mut fibers = Vec::new();
 
-        fibers.push(Fiber::new(cfg, &problem_info, JudgeLogKind::Full));
-        fibers.push(Fiber::new(cfg, &problem_info, JudgeLogKind::Contestant));
+        let fibers = vec![
+            Fiber::new(cfg, &problem_info, JudgeLogKind::Full),
+            Fiber::new(cfg, &problem_info, JudgeLogKind::Contestant),
+        ];
 
         let fibers_cnt = fibers.len();
         Ok(SimpleValuer {

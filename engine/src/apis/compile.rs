@@ -5,9 +5,7 @@ mod builder;
 use crate::operation::{Operation, ProgressWriter};
 use anyhow::Context as _;
 use serde::{Deserialize, Serialize};
-use std::{
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize)]
 pub struct CompileRequest {

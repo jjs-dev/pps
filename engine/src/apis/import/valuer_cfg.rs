@@ -1,3 +1,6 @@
+// triggers on Pest-generated code
+#![allow(clippy::upper_case_acronyms)]
+
 use pest::Parser as _;
 use std::path::Path;
 use thiserror::Error;

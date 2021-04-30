@@ -95,19 +95,13 @@ impl Group {
         self
     }
 
-    pub(crate) fn set_tests_vis(
-        &mut self,
-        vis: TestVisibleComponents,
-    ) -> &mut Self {
+    pub(crate) fn set_tests_vis(&mut self, vis: TestVisibleComponents) -> &mut Self {
         self.check_mutable();
         self.test_vis_flags = vis;
         self
     }
 
-    pub(crate) fn set_group_vis(
-        &mut self,
-        vis: SubtaskVisibleComponents,
-    ) -> &mut Self {
+    pub(crate) fn set_group_vis(&mut self, vis: SubtaskVisibleComponents) -> &mut Self {
         self.check_mutable();
         self.subtask_vis_flags = vis;
         self
@@ -342,8 +336,8 @@ impl Group {
 
 #[cfg(test)]
 mod tests {
-    use valuer_api::StatusKind;
     use super::*;
+    use valuer_api::StatusKind;
     #[test]
     fn simple() {
         simple_logger::SimpleLogger::new().init().ok();

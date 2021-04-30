@@ -1,4 +1,5 @@
-dockerImages:
-  - pps
-  - svaluer
+# TODO: integration tests
+noE2e: true
+# TODO: add artifacts
+noPublish: true
 buildTimeoutMinutes: 15

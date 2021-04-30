@@ -27,7 +27,7 @@ pub struct Operation {
     /// Operation status
     pub status: OperationStatus,
     /// Error (exists when status is FAILED)
-    pub error: Option<String>
+    pub error: Option<String>,
 }
 
 /// Api error.
