@@ -1,0 +1,2 @@
+[workspace]
+members = ["api", "engine", "cli", "pom", "svaluer", "valuer-api"]

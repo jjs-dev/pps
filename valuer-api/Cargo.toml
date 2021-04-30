@@ -1,0 +1,11 @@
+[package]
+name = "valuer-api"
+version = "0.1.0"
+authors = ["Mikail Bagishov <bagishov.mikail@yandex.ru>"]
+edition = "2018"
+
+[dependencies]
+bitflags = "1.2.1"
+serde = { version = "1.0.125", features = ["derive"] }
+strum = { version = "0.20.0", features = ["derive"] }
+pom = {path = "../pom"}

@@ -1,0 +1,4 @@
+dockerImages:
+  - pps
+  - svaluer
+buildTimeoutMinutes: 15
