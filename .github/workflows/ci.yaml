@@ -8,6 +8,23 @@ name: ci
     - trying
     - master
 jobs:
+  cpp-lint:
+    name: cpp-lint
+    runs-on: ubuntu-20.04
+    timeout-minutes: 15
+    steps:
+    - name: Fetch sources
+      uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt-get install -y clang-tools
+    - name: Prepare report directory
+      run: mkdir analyzer-report
+    - name: Configure jtl
+      run: cmake -S jtl -B jtl/cmake-build -DCMAKE_EXPORT_COMPILE_COMMANDS=On
+    - name: Lint jtl
+      run: scan-build -o analyzer-report make -C jtl/cmake-build -j4
+    - name: Check that report is empty
+      run: '[ -z "$(ls -A analyzer-report)" ]'
   misspell:
     runs-on: ubuntu-20.04
     timeout-minutes: 2
