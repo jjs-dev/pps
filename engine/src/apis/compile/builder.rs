@@ -454,8 +454,12 @@ impl<'a> ProblemBuilder<'a> {
                 path: "valuer".to_string(),
             }
         };
+        let valuer = pom::ChildValuer {
+            exe: valuer_exe,
+            extra_args: Vec::new(),
+        };
 
-        let valuer_cfg = FileRef {
+        let valuer_config = FileRef {
             root: FileRefRoot::Problem,
             path: "valuer-cfg".to_string(),
         };
@@ -465,9 +469,9 @@ impl<'a> ProblemBuilder<'a> {
             name: self.cfg.name.clone(),
             checker_exe: checker_ref,
             checker_cmd,
-            valuer_exe,
+            valuer: pom::Valuer::Child(valuer),
             tests,
-            valuer_cfg,
+            valuer_config,
         };
         let manifest_path = format!("{}/manifest.json", self.out_dir.display());
         let manifest_data =

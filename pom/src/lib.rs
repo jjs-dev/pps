@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[serde(rename_all = "camelCase")]
 pub struct Limits {
     /// Memory limit in bytes
     pub memory: Option<u64>,
@@ -120,13 +121,32 @@ impl std::ops::Index<TestId> for Vec<Test> {
     }
 }
 
+/// Defines how judge should communicate with valuer
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum Valuer {
+    /// Valuer should be spawned as a child process
+    Child(ChildValuer),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ChildValuer {
+    /// Valuer binary
+    pub exe: FileRef,
+    /// Extra arguments to pass to valuer
+    #[serde(default)]
+    pub extra_args: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Problem {
     pub title: String,
     pub name: String,
     pub tests: Vec<Test>,
     pub checker_exe: FileRef,
     pub checker_cmd: Vec<String>,
-    pub valuer_exe: FileRef,
-    pub valuer_cfg: FileRef,
+    pub valuer: Valuer,
+    pub valuer_config: FileRef,
 }
