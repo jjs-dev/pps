@@ -71,7 +71,7 @@ pub async fn exec(compile_args: CompileArgs) -> anyhow::Result<()> {
                 println!("Problem compiled successfully");
             }
             Outcome::Error(err) => {
-                println!("Compilation failed: {:#}", err,);
+                anyhow::bail!("compilation failed: {:#}", err,);
             }
             Outcome::Cancelled => {
                 println!("Operation was cancelled");

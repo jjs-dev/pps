@@ -63,7 +63,7 @@ async fn import_one_problem(src: &Path, dest: &Path, force: bool) -> anyhow::Res
             println!("Problem imported successfully");
         }
         Outcome::Error(err) => {
-            println!("Import failed: {:#}", err);
+            anyhow::bail!("import failed: {:#}", err);
         }
         Outcome::Cancelled => {
             println!("Operation was cancelled");
