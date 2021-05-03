@@ -1,6 +1,6 @@
 use crate::{
     apis::compile::{
-        build::{BuildBackend, Task, TaskError},
+        build::{BuildBackend, ExitCodeNonZeroError, Task},
         CompileUpdate,
     },
     command::Command,
@@ -95,11 +95,11 @@ impl<'a> ProblemBuilder<'a> {
                 let mut description = String::new();
                 writeln!(
                     &mut description,
-                    "Build error: unable to run build task: {}",
+                    "Build error: unable to run build task: {:#}",
                     err
                 )
                 .unwrap();
-                if let TaskError::ExitCodeNonZero(cmd, out) = err {
+                if let Some(ExitCodeNonZeroError(cmd, out)) = err.downcast_ref() {
                     writeln!(&mut description, "Command: {}", cmd).unwrap();
                     writeln!(
                         &mut description,
