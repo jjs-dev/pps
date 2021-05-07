@@ -25,6 +25,44 @@ jobs:
       run: scan-build -o analyzer-report make -C jtl/cmake-build -j4
     - name: Check that report is empty
       run: '[ -z "$(ls -A analyzer-report)" ]'
+  e2e-build:
+    env:
+      DOCKER_BUILDKIT: "1"
+    runs-on: ubuntu-20.04
+    timeout-minutes: 15
+    steps:
+    - name: Fetch sources
+      uses: actions/checkout@v2
+    - name: Setup cache
+      uses: Swatinem/rust-cache@v1
+    - name: Build e2e artifacts
+      run: bash ci/e2e-build.sh
+    - name: Upload e2e artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: e2e-artifacts
+        path: e2e-artifacts
+        retention-days: "2"
+  e2e-run:
+    needs: e2e-build
+    runs-on: ubuntu-20.04
+    timeout-minutes: 15
+    steps:
+    - name: Fetch sources
+      uses: actions/checkout@v2
+    - name: Download e2e artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: e2e-artifacts
+        path: e2e-artifacts
+    - name: Execute tests
+      run: bash ci/e2e-run.sh
+    - name: Upload logs
+      uses: actions/upload-artifact@v2
+      with:
+        name: e2e-logs
+        path: e2e-logs
+        retention-days: "2"
   misspell:
     runs-on: ubuntu-20.04
     timeout-minutes: 2
