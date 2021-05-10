@@ -3,6 +3,7 @@
 import argparse
 import tempfile
 import os
+import os.path
 import subprocess
 import shutil
 
@@ -17,16 +18,16 @@ def main(args):
         subprocess.run(["cargo", "build", "-p", "svaluer", "-Zunstable-options", "--out-dir", f"{args.tmp}"], env=env, check=True)
         shutil.copy(f"{args.tmp}/svaluer", f"{args.out}/bin/svaluer")
     if "jtl" in args.filter:
+        install_dir = os.path.realpath(args.out)
+        print("Configuring JTL")
+        subprocess.run(["cmake", "-S", f"{args.source}/jtl", "-B", f"{args.tmp}/cmake", f"-DCMAKE_INSTALL_PREFIX={install_dir}"], check=True)
         print("Building JTL")
-        subprocess.run(["cmake", "-S", f"{args.source}/jtl", "-B", f"{args.tmp}/cmake", f"-DCMAKE_INSTALL_PREFIX={args.out}"], check=True)
         subprocess.run(["cmake", "--build", f"{args.tmp}/cmake"], check=True)
+        print(f"Installing JTL to {install_dir}")
         subprocess.run(["cmake", "--install", f"{args.tmp}/cmake"], check=True)
 
 DESCRIPTION = '''
-Script that compiles PPS problem build environment.
-
-This environment contains files that are used when compiling or
-importing problems.
+Script that creates PPS problem build environment.
 '''
 
 parser = argparse.ArgumentParser(description=DESCRIPTION)
