@@ -2,7 +2,6 @@ mod group;
 
 use crate::cfg::Config;
 use group::Group;
-use log::{debug, info};
 use pom::TestId;
 use std::{collections::HashSet, num::NonZeroU32};
 use valuer_api::{
@@ -138,7 +137,7 @@ impl Fiber {
     }
 
     fn emit_judgelog(&mut self) -> FiberReply {
-        debug!("Emitting {:?} judge log", self.kind);
+        tracing::info!("Emitting {:?} judge log", self.kind);
         let is_full = self.groups.iter().all(|g| g.is_passed());
         let mut judge_log = JudgeLog {
             kind: self.kind,
@@ -148,7 +147,7 @@ impl Fiber {
             score: 0,
         };
         for (i, g) in self.groups.iter().enumerate() {
-            debug!("extending judge log with group {}", i);
+            tracing::debug!("extending judge log with group {}", i);
             g.update_judge_log(&mut judge_log);
         }
 
@@ -159,10 +158,10 @@ impl Fiber {
         for &i in &self.active_groups {
             let g = &mut self.groups[i];
             if let reply @ Some(_) = g.pop_test() {
-                debug!("group {} returned {}", i, reply.unwrap());
+                tracing::debug!("group {} returned {}", i, reply.unwrap());
                 return reply;
             }
-            debug!("group {} is not ready to run yet", i);
+            tracing::debug!("group {} is not ready to run yet", i);
         }
         None
     }
@@ -180,17 +179,18 @@ impl Fiber {
     }
 
     pub(crate) fn poll(&mut self) -> FiberReply {
-        debug!("Fiber {:?}: poll iteration", self.kind);
+        tracing::debug!("Fiber {:?}: poll iteration", self.kind);
         if self.finished {
-            debug!("Returning none: already finished");
+            tracing::debug!("Returning none: already finished");
             return FiberReply::None;
         }
         let cur_live_score = self.current_score();
-        debug!("live score: {}", cur_live_score);
+        tracing::debug!("live score: {}", cur_live_score);
         if cur_live_score != self.last_live_score {
-            info!(
+            tracing::debug!(
                 "live score updated: old={}, cur={}",
-                self.last_live_score, cur_live_score
+                self.last_live_score,
+                cur_live_score
             );
             self.last_live_score = cur_live_score;
             return FiberReply::LiveScore {
@@ -203,20 +203,20 @@ impl Fiber {
             let is_passed = g.is_passed();
             let is_failed = g.is_failed();
             if is_passed || is_failed {
-                info!("group {} is finished", i);
+                tracing::debug!("group {} is finished", i);
             } else {
                 new_active_groups.push(i);
             }
             assert!(!(is_passed && is_failed));
             if g.is_passed() {
-                debug!("group {} is passed", i);
+                tracing::debug!("group {} is passed", i);
                 for group in &mut self.groups {
                     group.on_group_pass(i as u32);
                 }
             } else if g.is_failed() {
                 let mut queue = vec![i as u32];
                 while let Some(k) = queue.pop() {
-                    debug!("group {} is failed", k);
+                    tracing::debug!("group {} is failed", k);
                     for (j, group) in self.groups.iter_mut().enumerate() {
                         if !group.is_waiting() {
                             continue;
@@ -231,10 +231,10 @@ impl Fiber {
         }
         self.active_groups = new_active_groups;
         if let Some(test_id) = self.poll_groups_for_tests() {
-            debug!("got test from groups: {}", test_id);
+            tracing::debug!("got test from groups: {}", test_id);
             FiberReply::Test { test_id }
         } else if self.running_tests() == 0 {
-            debug!(
+            tracing::debug!(
                 "this fiber is finished, emitting judge log of kind {:?}",
                 self.kind
             );
@@ -248,7 +248,7 @@ impl Fiber {
                 .flatten()
                 .next()
                 .expect("unreachable: running_tests() > 0, but no test found");
-            debug!(
+            tracing::debug!(
                 "no updates yet, waiting for running tests, incl. {:?}",
                 running_test
             );
@@ -259,9 +259,9 @@ impl Fiber {
     }
 
     fn add_test(&mut self, test: TestId, status: &Status) {
-        debug!("processing status {:?} for test {}", status, test);
+        tracing::debug!("processing status {:?} for test {}", status, test);
         if !self.visible_tests.contains(&test) {
-            debug!("skipping: test is not visible");
+            tracing::debug!("skipping: test is not visible");
             return;
         }
         for g in &mut self.groups {
@@ -289,7 +289,7 @@ mod tests {
     }
     #[test]
     fn simple() {
-        simple_logger::SimpleLogger::new().init().ok();
+        crate::setup_log();
         let mut f = make_fiber(
             "
 groups:

@@ -11,7 +11,6 @@ pub use cfg::Config;
 
 use anyhow::{Context, Result};
 use fiber::{Fiber, FiberReply};
-use log::debug;
 use pom::TestId;
 use std::collections::HashSet;
 use valuer_api::{JudgeLogKind, ProblemInfo, TestDoneNotification, ValuerResponse};
@@ -81,37 +80,38 @@ impl<'a> SimpleValuer<'a> {
     /// Executes one iteration.
     /// Returns false when valuing finishes.
     fn step(&mut self) -> anyhow::Result<bool> {
-        debug!("Running next step");
+        tracing::debug!("Running next step");
 
-        debug!("Polling fibers");
+        tracing::debug!("Polling fibers");
         // do we have something new from fibers?
         for fiber in &mut self.fibers {
             let reply = fiber.poll();
-            debug!("Polling fiber {:?}: {:?}", fiber.kind(), &reply);
+            tracing::debug!("Polling fiber {:?}: {:?}", fiber.kind(), &reply);
             match reply {
                 FiberReply::LiveScore { score } => {
                     if fiber.kind() == JudgeLogKind::Contestant {
-                        debug!("Step done: sending live score");
+                        tracing::info!(score, "Step done: sending live score");
                         let live_score = ValuerResponse::LiveScore { score };
                         self.driver
                             .send_command(&live_score)
                             .context("failed to send new live score")?;
                         return Ok(true);
                     } else {
-                        debug!("Ignoring live score: kind mismatch");
+                        tracing::debug!("Ignoring live score: kind mismatch");
                     }
                 }
                 FiberReply::Test { test_id } => {
                     let is_live = self.fibers.iter().any(|fib| fib.test_is_live(test_id));
-                    debug!(
+                    tracing::debug!(
                         "Step done: test execution requested (test id {}, live: {})",
-                        test_id, is_live
+                        test_id,
+                        is_live
                     );
                     self.send_run_on_test_query(test_id, is_live)?;
                     return Ok(true);
                 }
                 FiberReply::Finish(judge_log) => {
-                    debug!("Step done: new judge log {:?} emitted", judge_log.kind);
+                    tracing::info!("Step done: new judge log {:?} emitted", judge_log.kind);
                     let resp = ValuerResponse::JudgeLog(judge_log);
                     self.running_fibers -= 1;
                     self.driver
@@ -120,7 +120,7 @@ impl<'a> SimpleValuer<'a> {
                     return Ok(true);
                 }
                 FiberReply::None => {
-                    debug!("No updates from this fiber");
+                    tracing::debug!("No updates from this fiber");
                     continue;
                 }
             }
@@ -131,18 +131,18 @@ impl<'a> SimpleValuer<'a> {
             .poll_notification()
             .context("failed to poll for notification")?
         {
-            debug!("Step done: got notification");
+            tracing::debug!("Step done: got notification");
             self.process_notification(notification);
             return Ok(true);
         }
 
         // do we have running tests?
         if self.running_tests != 0 {
-            debug!("Step done: waiting for running tests completion");
+            tracing::debug!("Step done: waiting for running tests completion");
             return Ok(true);
         }
         if self.running_fibers != 0 {
-            debug!("Step done: waiting for running fibers completion");
+            tracing::debug!("Step done: waiting for running fibers completion");
             return Ok(true);
         }
 
@@ -184,4 +184,9 @@ pub mod status_util {
             kind: StatusKind::Rejected,
         }
     }
+}
+
+#[cfg(test)]
+fn setup_log() {
+    tracing_subscriber::fmt().try_init().ok();
 }
