@@ -1,5 +1,4 @@
 use either::{Left, Right};
-use log::debug;
 use pom::TestId;
 use std::collections::BTreeSet;
 use valuer_api::{
@@ -180,7 +179,7 @@ impl Group {
             _ => return,
         };
         if state.deps.remove(&other_group_id) {
-            debug!("group {:?}: dep {} passed", self.id, other_group_id);
+            tracing::debug!("group {:?}: dep {} passed", self.id, other_group_id);
             self.maybe_stop_waiting();
         }
     }
@@ -194,7 +193,7 @@ impl Group {
             // that group was not required, so we ignore this failure
             return;
         }
-        debug!("group {:?}: dep {} failed", self.id, other_group_id);
+        tracing::debug!("group {:?}: dep {} failed", self.id, other_group_id);
         self.state = State::Skipped(SkippedState {
             failed_dep: other_group_id,
         });
@@ -202,31 +201,31 @@ impl Group {
 
     /// Returns next test from this group that can be executed
     pub(crate) fn pop_test(&mut self) -> Option<TestId> {
-        debug!("Group {:?}: searching for test", self.id);
+        tracing::debug!("Group {:?}: searching for test", self.id);
         // we can't run if some deps are running or failed
         let state = match &mut self.state {
             State::Building => unreachable!(),
             State::Finished(_) | State::Skipped(_) => {
-                debug!("Returning None: group has been done");
+                tracing::debug!("Returning None: group has been done");
                 return None;
             }
             State::Waiting(_) => {
-                debug!("Returning None: some deps still not finished");
+                tracing::debug!("Returning None: some deps still not finished");
                 return None;
             }
             State::Running(state) => state,
         };
         if !state.running_tests.is_empty() && !self.run_all_tests {
-            debug!("Returning None: run_all_tests=false, and a test is already running");
+            tracing::debug!("Returning None: run_all_tests=false, and a test is already running");
             return None;
         }
         if let Some(t) = state.queued_tests.iter().next().copied() {
-            debug!("found test: {}", t);
+            tracing::debug!("found test: {}", t);
             state.queued_tests.remove(&t);
             state.running_tests.insert(t);
             Some(t)
         } else {
-            debug!("Queue is empty");
+            tracing::debug!("Queue is empty");
             None
         }
     }
@@ -243,7 +242,7 @@ impl Group {
         let must_run_all_tests = self.run_all_tests;
         let state = self.running_state();
         if state.failed_tests.is_empty() {
-            debug!("group {:?} is now failed", id);
+            tracing::debug!("group {:?} is now failed", id);
         }
         state.failed_tests.insert((test_id, status));
         if !must_run_all_tests {
@@ -281,7 +280,7 @@ impl Group {
         if !state.running_tests.remove(&test_id) {
             return;
         }
-        debug!(
+        tracing::debug!(
             "got test result: test={}, status={:?}",
             test_id.get(),
             status
@@ -340,7 +339,7 @@ mod tests {
     use valuer_api::StatusKind;
     #[test]
     fn simple() {
-        simple_logger::SimpleLogger::new().init().ok();
+        crate::setup_log();
         let st = || Status {
             kind: StatusKind::Accepted,
             code: "MOCK_OK".to_string(),

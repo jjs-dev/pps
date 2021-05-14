@@ -1,6 +1,5 @@
 //! Simple valuer
 use anyhow::Context;
-use log::debug;
 use pom::TestId;
 use std::collections::HashSet;
 
@@ -255,20 +254,16 @@ fn main_json_mode() -> anyhow::Result<()> {
 }
 
 fn main() -> anyhow::Result<()> {
-    if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", "info,svaluer=debug");
-    }
-
     tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_env_filter(tracing_subscriber::EnvFilter::from_env("JJS_SVALUER_LOG"))
         .init();
 
     let json_mode = std::env::var("JJS_VALUER").is_ok();
     if json_mode {
-        debug!("Mode: JSON");
+        tracing::info!("Mode: JSON");
         main_json_mode()?
     } else {
-        debug!("Mode: CLI");
+        tracing::info!("Mode: CLI");
         main_cli_mode()?
     }
 
