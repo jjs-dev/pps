@@ -134,6 +134,8 @@ pub enum Valuer {
 pub struct ChildValuer {
     /// Valuer binary
     pub exe: FileRef,
+    /// Current directory. Default is problem assets directory
+    pub current_dir: Option<FileRef>,
     /// Extra arguments to pass to valuer
     #[serde(default)]
     pub extra_args: Vec<String>,
@@ -148,5 +150,4 @@ pub struct Problem {
     pub checker_exe: FileRef,
     pub checker_cmd: Vec<String>,
     pub valuer: Valuer,
-    pub valuer_config: FileRef,
 }
