@@ -174,6 +174,7 @@ impl Default for JudgeLog {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProblemInfo {
     pub tests: Vec<String>,
+    // TODO: valuer config
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
