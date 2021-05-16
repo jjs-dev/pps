@@ -10,11 +10,13 @@ RUN python3 ./build-env/make.py --out /build-env
 FROM rust:slim as build-pps
 ARG BUILD_DATE=''
 ARG GIT_HASH=''
+ARG VERSION=''
 COPY . /pps
 WORKDIR /pps
 ENV JJS_BUILD_INFO_VERIFY_FULL=1
 ENV JJS_BUILD_INFO_DATE=${BUILD_DATE}
-ENV JJS_BUILD_INFO_GIT_COMMIT=${GIT_HASH}}
+ENV JJS_BUILD_INFO_GIT_COMMIT=${GIT_HASH}
+ENV JJS_BUILD_INFO_VERSION=${VERSION}
 RUN cargo install --path cli
 
 FROM ubuntu:focal
