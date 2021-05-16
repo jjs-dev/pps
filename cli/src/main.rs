@@ -3,7 +3,7 @@ mod import;
 mod progress_notifier;
 
 use anyhow::Context as _;
-use clap::Clap;
+use clap::{Clap, FromArgMatches, IntoApp};
 use std::path::Path;
 
 #[derive(Clap, Debug)]
@@ -31,7 +31,10 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
-    let args = Args::parse();
+    let args = Args::into_app();
+    let args = buildinfo::BuildInfo::wrap_clap(args);
+    let args = args.get_matches();
+    let args = Args::from_arg_matches(&args);
     process_args(args).await.context("failed to process args")?;
     Ok(())
 }
