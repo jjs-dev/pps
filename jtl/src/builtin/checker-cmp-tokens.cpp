@@ -64,12 +64,12 @@ int main(int argc, char** argv) {
     while (true) {
         char* actual = next_token(checker_input.sol_answer);
         char* expected = next_token(checker_input.corr_answer);
-        if (!expected && actual) {
+        if (expected && !actual) {
             comment("error: early EOF in actual answer on position %zu", i);
             comment("note: next expected token was %s", expected);
             finish(Outcome::WRONG_ANSWER);
         }
-        if (expected && !actual) {
+        if (!expected && actual) {
             comment("error: actual answer contains additional tokens, starting "
                     "from %zu",
                     i);
